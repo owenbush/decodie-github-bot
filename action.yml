@@ -63,8 +63,10 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        # Add eyes reaction to the triggering comment for immediate feedback
         COMMENT_ID="${{ github.event.comment.id }}"
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+        # Add eyes reaction for immediate visual feedback
         if [ -n "$COMMENT_ID" ]; then
           gh api \
             --method POST \
@@ -74,6 +76,15 @@ runs:
             --method POST \
             "/repos/${{ github.repository }}/pulls/comments/${COMMENT_ID}/reactions" \
             -f content=eyes 2>/dev/null || true
+        fi
+
+        # Post a status comment so the user knows the bot is working
+        PR_NUMBER="${{ github.event.issue.number || github.event.pull_request.number }}"
+        if [ -n "$PR_NUMBER" ]; then
+          gh pr comment "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "> 📖 **Decodie** is working on your request... [View progress]($RUN_URL)" \
+            2>/dev/null || true
         fi
 
     - name: Install Decodie skill
