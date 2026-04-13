@@ -131,13 +131,18 @@ runs:
           - /decodie:analyze — Generate structured learning entries for code files
           - /decodie:explain — Explain a code selection with summary, breakdowns, issues, improvements, and key concepts
 
-          ## How to respond
+          ## Trigger context
 
-          **If triggered from an inline review comment on specific code lines:**
-          The user is asking about the highlighted code. Default to using /decodie:explain on the code visible in the review comment's diff hunk. If the user explicitly asks to "analyze" instead, use /decodie:analyze on the referenced file.
+          This run was triggered by a **${{ github.event_name }}** event.
 
-          **If triggered from a top-level PR comment:**
-          The user is asking about the PR as a whole or specific files. Default to using /decodie:analyze. If the user mentions a specific file (e.g., "@decodie-bot explain src/foo.ts"), read that file and use /decodie:explain on it.
+          - If the event is `pull_request_review_comment`: the user commented on specific lines of code in a PR review. The file is `${{ github.event.comment.path }}` and the highlighted code is in the diff hunk below. **Default to /decodie:explain** on this code unless the user explicitly asks to "analyze".
+
+          - If the event is `issue_comment`: the user posted a top-level comment on a PR. **Default to /decodie:analyze** on the PR's changed files. If the user mentions a specific file (e.g., "@decodie-bot explain src/foo.ts"), read that file and use /decodie:explain on it.
+
+          Diff hunk from the review comment (empty for top-level comments):
+          ```
+          ${{ github.event.comment.diff_hunk }}
+          ```
 
           ## Configuration for /decodie:analyze
 
