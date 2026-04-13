@@ -58,6 +58,24 @@ runs:
           exit 1
         fi
 
+    - name: Acknowledge trigger
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # Add eyes reaction to the triggering comment for immediate feedback
+        COMMENT_ID="${{ github.event.comment.id }}"
+        if [ -n "$COMMENT_ID" ]; then
+          gh api \
+            --method POST \
+            "/repos/${{ github.repository }}/issues/comments/${COMMENT_ID}/reactions" \
+            -f content=eyes 2>/dev/null || \
+          gh api \
+            --method POST \
+            "/repos/${{ github.repository }}/pulls/comments/${COMMENT_ID}/reactions" \
+            -f content=eyes 2>/dev/null || true
+        fi
+
     - name: Install Decodie skill
       shell: bash
       run: npx @owenbush/decodie-ui install-skill
