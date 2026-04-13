@@ -1,0 +1,133 @@
+name: 'Decodie Bot'
+description: 'An interactive bot that responds to @decodie mentions in PR comments with code analysis and explanations'
+author: 'owenbush'
+branding:
+  icon: 'message-circle'
+  color: 'blue'
+
+inputs:
+  anthropic-api-key:
+    description: 'Anthropic API key (provide this or claude-code-oauth-token)'
+    required: false
+    default: ''
+  claude-code-oauth-token:
+    description: 'Claude Code OAuth token (provide this or anthropic-api-key)'
+    required: false
+    default: ''
+  trigger-phrase:
+    description: 'The mention phrase that triggers the bot'
+    required: false
+    default: '@decodie'
+  model:
+    description: 'Claude model to use'
+    required: false
+    default: 'claude-sonnet-4-6'
+  mode:
+    description: 'Analysis mode for /decodie:analyze: selective or exhaustive'
+    required: false
+    default: 'selective'
+  max-files:
+    description: 'Maximum files to analyze when running /decodie:analyze (0 for no limit)'
+    required: false
+    default: '10'
+  include:
+    description: 'Comma-separated glob patterns for files to include in analysis'
+    required: false
+    default: ''
+  exclude:
+    description: 'Comma-separated glob patterns for files to exclude from analysis'
+    required: false
+    default: ''
+  commit:
+    description: 'Whether to commit generated entries from /decodie:analyze to .decodie/'
+    required: false
+    default: 'false'
+  github-token:
+    description: 'GitHub token with repo and pull request permissions'
+    required: false
+    default: '${{ github.token }}'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate auth
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.anthropic-api-key }}" ] && [ -z "${{ inputs.claude-code-oauth-token }}" ]; then
+          echo "::error::Either anthropic-api-key or claude-code-oauth-token must be provided"
+          exit 1
+        fi
+
+    - name: Install Decodie skill
+      shell: bash
+      run: npx @owenbush/decodie-ui install-skill
+
+    - name: Run Decodie bot
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic-api-key }}
+        claude_code_oauth_token: ${{ inputs.claude-code-oauth-token }}
+        github_token: ${{ inputs.github-token }}
+        claude_args: '--model ${{ inputs.model }}'
+        trigger_phrase: ${{ inputs.trigger-phrase }}
+        settings: |
+          {
+            "permissions": {
+              "allow": [
+                "Bash(git diff:*)",
+                "Bash(git add:*)",
+                "Bash(git commit:*)",
+                "Bash(git push:*)",
+                "Bash(git log:*)",
+                "Bash(git status:*)",
+                "Bash(gh pr comment:*)",
+                "Bash(ls:*)",
+                "Bash(cat:*)",
+                "Bash(find:*)",
+                "Bash(mkdir:*)",
+                "Bash(echo:*)",
+                "Bash(shasum:*)",
+                "Read",
+                "Write",
+                "Edit",
+                "Glob",
+                "Grep"
+              ]
+            }
+          }
+        prompt: |
+          You have the Decodie skill installed. You are a bot that responds to mentions in pull request comments.
+
+          Available commands:
+          - /decodie:analyze — Generate structured learning entries for code files
+          - /decodie:explain — Explain a code selection with summary, breakdowns, issues, improvements, and key concepts
+
+          ## How to respond
+
+          **If triggered from an inline review comment on specific code lines:**
+          The user is asking about the highlighted code. Default to using /decodie:explain on the code visible in the review comment's diff hunk. If the user explicitly asks to "analyze" instead, use /decodie:analyze on the referenced file.
+
+          **If triggered from a top-level PR comment:**
+          The user is asking about the PR as a whole or specific files. Default to using /decodie:analyze. If the user mentions a specific file (e.g., "@decodie explain src/foo.ts"), read that file and use /decodie:explain on it.
+
+          ## Configuration for /decodie:analyze
+
+          - Mode: ${{ inputs.mode }}
+          - Max files: ${{ inputs.max-files }}
+          - Include patterns: ${{ inputs.include }}
+          - Exclude patterns: ${{ inputs.exclude }}
+          - Commit entries: ${{ inputs.commit }}
+
+          When running /decodie:analyze:
+          1. Identify the relevant files from the PR diff or from what the user specified.
+          2. Filter: skip deleted files, binaries, lock files, generated files.
+          3. Apply include/exclude patterns and max-files limit if set.
+          4. Run /decodie:analyze on the files.
+          5. If "Commit entries" is true, commit and push the .decodie/ changes to the PR branch with the message "docs(decodie): auto-generated entries from bot analysis".
+             If false, do NOT commit or push any changes.
+
+          ## General guidelines
+
+          - Always respond helpfully, even if the user's request doesn't map cleanly to analyze or explain.
+          - If the user asks a general question about the code, answer it directly using the code context available to you.
+          - Keep responses focused and relevant to what was asked.
