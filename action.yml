@@ -1,5 +1,5 @@
 name: 'Decodie Bot'
-description: 'An interactive bot that responds to @decodie mentions in PR comments with code analysis and explanations'
+description: 'An interactive bot that responds to @decodie-bot mentions in PR comments with code analysis and explanations'
 author: 'owenbush'
 branding:
   icon: 'message-circle'
@@ -17,7 +17,7 @@ inputs:
   trigger-phrase:
     description: 'The mention phrase that triggers the bot'
     required: false
-    default: '@decodie'
+    default: '@decodie-bot'
   model:
     description: 'Claude model to use'
     required: false
@@ -108,7 +108,7 @@ runs:
           The user is asking about the highlighted code. Default to using /decodie:explain on the code visible in the review comment's diff hunk. If the user explicitly asks to "analyze" instead, use /decodie:analyze on the referenced file.
 
           **If triggered from a top-level PR comment:**
-          The user is asking about the PR as a whole or specific files. Default to using /decodie:analyze. If the user mentions a specific file (e.g., "@decodie explain src/foo.ts"), read that file and use /decodie:explain on it.
+          The user is asking about the PR as a whole or specific files. Default to using /decodie:analyze. If the user mentions a specific file (e.g., "@decodie-bot explain src/foo.ts"), read that file and use /decodie:explain on it.
 
           ## Configuration for /decodie:analyze
 

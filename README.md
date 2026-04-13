@@ -2,7 +2,7 @@
 
 # Decodie Bot
 
-An interactive GitHub bot that responds to `@decodie` mentions in pull request comments. Mention it on highlighted code to get an explanation, or in a top-level comment to generate [Decodie](https://decodie.owenbush.dev) learning entries for the PR.
+An interactive GitHub bot that responds to `@decodie-bot` mentions in pull request comments. Mention it on highlighted code to get an explanation, or in a top-level comment to generate [Decodie](https://decodie.owenbush.dev) learning entries for the PR.
 
 Built on top of [claude-code-action](https://github.com/anthropics/claude-code-action) — runs the official [Decodie skill](https://github.com/owenbush/decodie-skill) (`/decodie:explain` and `/decodie:analyze`) on demand from PR conversations.
 
@@ -12,7 +12,7 @@ The bot responds to two types of PR comments:
 
 ### Inline review comments (code explanations)
 
-When you highlight lines of code in a PR review and mention `@decodie`, the bot runs `/decodie:explain` on the highlighted code and replies with:
+When you highlight lines of code in a PR review and mention `@decodie-bot`, the bot runs `/decodie:explain` on the highlighted code and replies with:
 
 - **Summary** — what the code does at a high level
 - **Detailed breakdowns** — non-obvious sections explained with patterns identified
@@ -24,7 +24,7 @@ This is ephemeral — nothing is committed to the repo.
 
 ### Top-level PR comments (entry generation)
 
-When you mention `@decodie` in a regular PR comment, the bot runs `/decodie:analyze` on the PR's changed files and generates structured Decodie learning entries. These can optionally be committed to `.decodie/` in the PR branch.
+When you mention `@decodie-bot` in a regular PR comment, the bot runs `/decodie:analyze` on the PR's changed files and generates structured Decodie learning entries. These can optionally be committed to `.decodie/` in the PR branch.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ on:
 
 jobs:
   bot:
-    if: contains(github.event.comment.body, '@decodie')
+    if: contains(github.event.comment.body, '@decodie-bot')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -59,11 +59,11 @@ jobs:
 
 In a PR review, select some lines of code, start a review comment, and write:
 
-> `@decodie explain this`
+> `@decodie-bot explain this`
 
 or simply:
 
-> `@decodie`
+> `@decodie-bot`
 
 The bot replies in the review thread with a detailed explanation.
 
@@ -71,21 +71,21 @@ The bot replies in the review thread with a detailed explanation.
 
 In a top-level PR comment, write:
 
-> `@decodie analyze this PR`
+> `@decodie-bot analyze this PR`
 
 or simply:
 
-> `@decodie`
+> `@decodie-bot`
 
 The bot analyzes changed files and replies with a summary of the generated entries.
 
 ### Analyze a specific file
 
-> `@decodie analyze src/auth/middleware.ts`
+> `@decodie-bot analyze src/auth/middleware.ts`
 
 ### Explain a specific file from a top-level comment
 
-> `@decodie explain src/auth/middleware.ts`
+> `@decodie-bot explain src/auth/middleware.ts`
 
 ## Inputs
 
@@ -93,7 +93,7 @@ The bot analyzes changed files and replies with a summary of the generated entri
 |-------|-------------|---------|
 | `anthropic-api-key` | Anthropic API key (provide this or `claude-code-oauth-token`) | `""` |
 | `claude-code-oauth-token` | Claude Code OAuth token (provide this or `anthropic-api-key`) | `""` |
-| `trigger-phrase` | The mention phrase that triggers the bot | `@decodie` |
+| `trigger-phrase` | The mention phrase that triggers the bot | `@decodie-bot` |
 | `model` | Claude model to use | `claude-sonnet-4-6` |
 | `mode` | Analysis mode for `/decodie:analyze`: `selective` or `exhaustive` | `selective` |
 | `max-files` | Maximum files to analyze (0 for no limit) | `10` |
@@ -153,7 +153,7 @@ The bot runs Claude on every matching comment, so costs scale with usage. To kee
 
 | | [Decodie Bot](https://github.com/owenbush/decodie-github-bot) | [Decodie GitHub Action](https://github.com/owenbush/decodie-github-action) |
 |---|---|---|
-| **Trigger** | On demand, via `@decodie` mention | Automatic, on every PR open/update |
+| **Trigger** | On demand, via `@decodie-bot` mention | Automatic, on every PR open/update |
 | **Commands** | `/decodie:explain` and `/decodie:analyze` | `/decodie:analyze` only |
 | **Output** | Reply comment in the PR thread | PR comment and/or committed entries |
 | **Commits to `.decodie/`** | Off by default (opt-in) | On by default (opt-out) |
