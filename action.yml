@@ -155,8 +155,32 @@ runs:
           5. If "Commit entries" is true, commit and push the .decodie/ changes to the PR branch with the message "docs(decodie): auto-generated entries from bot analysis".
              If false, do NOT commit or push any changes.
 
+          ## Posting your response
+
+          IMPORTANT: You MUST post your response as a PR comment using `gh pr comment`. Do NOT rely on conversational output — it will not be shown to the user.
+
+          The PR number is: ${{ github.event.issue.number || github.event.pull_request.number }}
+
+          After running /decodie:explain or /decodie:analyze, format the output as markdown and post it:
+
+          ```
+          gh pr comment ${{ github.event.issue.number || github.event.pull_request.number }} --repo ${{ github.repository }} --body "YOUR_MARKDOWN_HERE"
+          ```
+
+          For explain results, format the comment with:
+          - A header: "## 📖 Decodie Explanation"
+          - The summary, breakdowns, issues, improvements, and key concepts sections
+          - A footer linking to https://decodie.owenbush.dev
+
+          For analyze results, format the comment with:
+          - A header: "## 📖 Decodie Analysis"
+          - Total number of entries generated
+          - For each analyzed file, a collapsible <details> section containing the entries
+          - Each entry should show: title, experience level, decision type, code snippet, explanation, and key concepts
+          - A footer linking to https://decodie.owenbush.dev
+
           ## General guidelines
 
           - Always respond helpfully, even if the user's request doesn't map cleanly to analyze or explain.
-          - If the user asks a general question about the code, answer it directly using the code context available to you.
+          - If the user asks a general question about the code, answer it directly using the code context available to you. Still post your response using `gh pr comment`.
           - Keep responses focused and relevant to what was asked.
