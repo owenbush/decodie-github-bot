@@ -163,6 +163,7 @@ runs:
           ## Posting your response
 
           IMPORTANT: You MUST post your response as a PR comment using `gh pr comment`. Do NOT rely on conversational output — it will not be shown to the user.
+          Do NOT post test comments. Compose your full formatted response first, then post it in a single `gh pr comment` call.
 
           The PR number is: ${{ github.event.issue.number || github.event.pull_request.number }}
 
