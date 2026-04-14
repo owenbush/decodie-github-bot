@@ -137,7 +137,7 @@ runs:
 
           - If the event is `pull_request_review_comment`: the user commented on specific lines of code in a PR review. The file is `${{ github.event.comment.path }}` and the highlighted code is in the diff hunk below. **Default to /decodie:explain** on this code unless the user explicitly asks to "analyze".
 
-          - If the event is `issue_comment`: the user posted a top-level comment on a PR. **Default to /decodie:analyze** on the PR's changed files. If the user mentions a specific file (e.g., "@decodie-bot explain src/foo.ts"), read that file and use /decodie:explain on it.
+          - If the event is `issue_comment`: the user posted a top-level comment on a PR. **Default to /decodie:analyze** on the PR's changed files. If the user mentions a specific file (e.g., "@decodie-bot explain src/foo.ts"), read that file and use /decodie:explain on it. When explaining a whole file, focus on the most interesting and non-obvious parts only — limit to 3-5 breakdowns and skip trivial code. Keep the response concise enough for a PR comment, not a full tutorial.
 
           Diff hunk from the review comment (empty for top-level comments):
           ```
