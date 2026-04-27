@@ -39,7 +39,7 @@ inputs:
     required: false
     default: ''
   commit:
-    description: 'Whether to commit generated entries from /decodie:analyze to .decodie/'
+    description: 'Whether to commit generated entries from /decodie:analyze or /decodie:overview to .decodie/'
     required: false
     default: 'false'
   github-token:
@@ -130,14 +130,17 @@ runs:
           Available commands:
           - /decodie:analyze — Generate structured learning entries for code files
           - /decodie:explain — Explain a code selection with summary, breakdowns, issues, improvements, and key concepts
+          - /decodie:overview — Generate a high-level overview of a file, directory, or project (purpose, structure, entry points, dependencies)
 
           ## Trigger context
 
           This run was triggered by a **${{ github.event_name }}** event.
 
-          - If the event is `pull_request_review_comment`: the user commented on specific lines of code in a PR review. The file is `${{ github.event.comment.path }}` and the highlighted code is in the diff hunk below. **Default to /decodie:explain** on this code unless the user explicitly asks to "analyze".
+          - If the event is `pull_request_review_comment`: the user commented on specific lines of code in a PR review. The file is `${{ github.event.comment.path }}` and the highlighted code is in the diff hunk below. **Default to /decodie:explain** on this code unless the user explicitly asks to "analyze" or "overview".
 
           - If the event is `issue_comment`: the user posted a top-level comment on a PR. **Default to /decodie:analyze** on the PR's changed files. If the user mentions a specific file (e.g., "@decodie-bot explain src/foo.ts"), read that file and use /decodie:explain on it. When explaining a whole file, focus on the most interesting and non-obvious parts only — limit to 3-5 breakdowns and skip trivial code. Keep the response concise enough for a PR comment, not a full tutorial.
+
+          - **Explicit overview trigger**: if the user mentions "overview" or "summarize" anywhere in either event (e.g., "@decodie-bot overview src/auth/", "@decodie-bot summarize this PR"), run **/decodie:overview** on the named target instead of the default command for that event. If no target is given, run /decodie:overview on the project root. Overview is single-target and idempotent — re-running on the same target overwrites the existing entry rather than chaining superseded versions.
 
           Diff hunk from the review comment (empty for top-level comments):
           ```
@@ -160,6 +163,12 @@ runs:
           5. If "Commit entries" is true, commit and push the .decodie/ changes to the PR branch with the message "docs(decodie): auto-generated entries from bot analysis".
              If false, do NOT commit or push any changes.
 
+          When running /decodie:overview:
+          1. Identify the target — a file path, a directory path, or the project root if none was specified.
+          2. Run /decodie:overview on the target. The command will check for an existing overview entry with matching `sources` and overwrite it in place if found, otherwise create a fresh entry.
+          3. If "Commit entries" is true, commit and push the .decodie/ changes to the PR branch with the message "docs(decodie): auto-generated overview from bot".
+             If false, do NOT commit or push any changes.
+
           ## Posting your response
 
           IMPORTANT: You MUST post your response as a PR comment using `gh pr comment`. Do NOT rely on conversational output — it will not be shown to the user.
@@ -167,7 +176,7 @@ runs:
 
           The PR number is: ${{ github.event.issue.number || github.event.pull_request.number }}
 
-          After running /decodie:explain or /decodie:analyze, format the output as markdown and post it:
+          After running /decodie:explain, /decodie:analyze, or /decodie:overview, format the output as markdown and post it:
 
           ```
           gh pr comment ${{ github.event.issue.number || github.event.pull_request.number }} --repo ${{ github.repository }} --body "YOUR_MARKDOWN_HERE"
@@ -185,8 +194,18 @@ runs:
           - Each entry should show: title, experience level, decision type, code snippet, explanation, and key concepts
           - A footer linking to https://decodie.owenbush.dev
 
+          For overview results, format the comment with:
+          - A header: "## 📖 Decodie Overview"
+          - The entry title (target + one-line summary)
+          - A `**Purpose**` section with the purpose prose
+          - A `**Structure**` section with the structure prose
+          - If `entry_points` was populated, an `**Entry points**` section as a bulleted list
+          - If `dependencies` was populated, a `**Dependencies**` section as a bulleted list
+          - A footer linking to https://decodie.owenbush.dev
+          - If this run regenerated an existing overview (the command will say so in its confirmation), include a one-line note that the prior entry was overwritten
+
           ## General guidelines
 
-          - Always respond helpfully, even if the user's request doesn't map cleanly to analyze or explain.
+          - Always respond helpfully, even if the user's request doesn't map cleanly to analyze, explain, or overview.
           - If the user asks a general question about the code, answer it directly using the code context available to you. Still post your response using `gh pr comment`.
           - Keep responses focused and relevant to what was asked.
