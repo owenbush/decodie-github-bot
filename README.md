@@ -4,7 +4,7 @@
 
 An interactive GitHub bot that responds to `@decodie-bot` mentions in pull request comments. Mention it on highlighted code to get an explanation, or in a top-level comment to generate [Decodie](https://decodie.owenbush.dev) learning entries for the PR.
 
-Built on top of [claude-code-action](https://github.com/anthropics/claude-code-action) — runs the official [Decodie skill](https://github.com/owenbush/decodie-skill) (`/decodie:explain` and `/decodie:analyze`) on demand from PR conversations.
+Built on top of [claude-code-action](https://github.com/anthropics/claude-code-action) — runs the official [Decodie skill](https://github.com/owenbush/decodie-skill) (`/decodie:explain`, `/decodie:analyze`, and `/decodie:overview`) on demand from PR conversations.
 
 ## How It Works
 
@@ -25,6 +25,10 @@ This is ephemeral — nothing is committed to the repo.
 ### Top-level PR comments (entry generation)
 
 When you mention `@decodie-bot` in a regular PR comment, the bot runs `/decodie:analyze` on the PR's changed files and generates structured Decodie learning entries. These can optionally be committed to `.decodie/` in the PR branch.
+
+### Overview a file, directory, or project (explicit trigger)
+
+Mention `overview` or `summarize` in your comment and the bot runs `/decodie:overview` instead of the default. The output is a single high-level entry — purpose, structure, optional entry points, optional dependencies — useful as an onboarding starting point. Re-running on the same target overwrites the existing overview rather than chaining superseded versions.
 
 ## Quick Start
 
@@ -87,6 +91,16 @@ The bot analyzes changed files and replies with a summary of the generated entri
 
 > `@decodie-bot explain src/auth/middleware.ts`
 
+### Overview a directory or the whole project
+
+> `@decodie-bot overview src/auth/`
+
+> `@decodie-bot summarize this PR`
+
+> `@decodie-bot overview`
+
+The bot replies with a high-level summary entry (purpose, structure, entry points, dependencies). If `commit: true`, the entry is also persisted to `.decodie/` on the PR branch.
+
 ## Inputs
 
 | Input | Description | Default |
@@ -99,7 +113,7 @@ The bot analyzes changed files and replies with a summary of the generated entri
 | `max-files` | Maximum files to analyze (0 for no limit) | `10` |
 | `include` | Comma-separated glob patterns for files to include in analysis | `""` |
 | `exclude` | Comma-separated glob patterns for files to exclude from analysis | `""` |
-| `commit` | Whether to commit generated entries from `/decodie:analyze` to `.decodie/` | `false` |
+| `commit` | Whether to commit generated entries from `/decodie:analyze` or `/decodie:overview` to `.decodie/` | `false` |
 | `github-token` | GitHub token with repo and pull request permissions | `${{ github.token }}` |
 
 ### Authentication
@@ -121,7 +135,7 @@ permissions:
   issues: write         # To respond to issue comments on PRs
 ```
 
-If you enable `commit: 'true'` for analyze results, change `contents` to `write` and use `actions/checkout` with `ref: ${{ github.head_ref }}`:
+If you enable `commit: 'true'` for analyze or overview results, change `contents` to `write` and use `actions/checkout` with `ref: ${{ github.head_ref }}`:
 
 ```yaml
 permissions:
@@ -154,7 +168,7 @@ The bot runs Claude on every matching comment, so costs scale with usage. To kee
 | | [Decodie Bot](https://github.com/owenbush/decodie-github-bot) | [Decodie GitHub Action](https://github.com/owenbush/decodie-github-action) |
 |---|---|---|
 | **Trigger** | On demand, via `@decodie-bot` mention | Automatic, on every PR open/update |
-| **Commands** | `/decodie:explain` and `/decodie:analyze` | `/decodie:analyze` only |
+| **Commands** | `/decodie:explain`, `/decodie:analyze`, `/decodie:overview` | `/decodie:analyze` only |
 | **Output** | Reply comment in the PR thread | PR comment and/or committed entries |
 | **Commits to `.decodie/`** | Off by default (opt-in) | On by default (opt-out) |
 | **Cost model** | Per invocation (user-triggered) | Per PR (automatic) |
